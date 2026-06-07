@@ -1,0 +1,397 @@
+-- LocalScript (Script Cliente)
+-- Coloque em StarterPlayerScripts ou StarterGui
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ==================== CONFIGURAÇÕES ====================
+local BLOCK_COLOR = Color3.fromRGB(138, 43, 226)
+local BLOCK_TRANSPARENCY = 0.5
+
+-- ==================== GUI ====================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "GhostBlockController"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+local buttonFrame = Instance.new("Frame")
+buttonFrame.Name = "ButtonFrame"
+buttonFrame.Size = UDim2.new(0, 60, 0, 60)
+buttonFrame.Position = UDim2.new(1, -70, 0, 10)
+buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+buttonFrame.BackgroundTransparency = 0.3
+buttonFrame.BorderSizePixel = 0
+buttonFrame.Active = true
+buttonFrame.Selectable = true
+buttonFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = buttonFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = BLOCK_COLOR
+stroke.Thickness = 2
+stroke.Parent = buttonFrame
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(1, -8, 1, -8)
+toggleButton.Position = UDim2.new(0, 4, 0, 4)
+toggleButton.BackgroundTransparency = 1
+toggleButton.Text = "👻"
+toggleButton.TextColor3 = BLOCK_COLOR
+toggleButton.TextSize = 32
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = buttonFrame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(0, 100, 0, 20)
+statusLabel.Position = UDim2.new(1, -110, 0, 75)
+statusLabel.BackgroundTransparency = 0.5
+statusLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+statusLabel.TextColor3 = BLOCK_COLOR
+statusLabel.Text = "BLOCOS: ON"
+statusLabel.Font = Enum.Font.GothamBold
+statusLabel.TextSize = 12
+statusLabel.TextStrokeTransparency = 0.5
+statusLabel.Parent = screenGui
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 6)
+statusCorner.Parent = statusLabel
+
+-- ==================== SISTEMA DE ARRASTAR ====================
+local isDragging = false
+local dragStart = nil
+local startPos = nil
+
+buttonFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		isDragging = true
+		dragStart = input.Position
+		startPos = buttonFrame.Position
+	end
+end)
+
+buttonFrame.InputChanged:Connect(function(input)
+	if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		buttonFrame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+		statusLabel.Position = UDim2.new(
+			buttonFrame.Position.X.Scale,
+			buttonFrame.Position.X.Offset - 40,
+			buttonFrame.Position.Y.Scale,
+			buttonFrame.Position.Y.Offset + 65
+		)
+	end
+end)
+
+buttonFrame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		isDragging = false
+	end
+end)
+
+-- ==================== DADOS DOS BLOCOS (195 blocos - 138 + 57) ====================
+local blocksData = {
+	-- BLOCOS 1-138 (ORIGINAIS)
+	{name = "BlocoEditor_1", size = Vector3.new(30.0, 0.5, 7.0), pos = Vector3.new(-19357.41, 5.31, 8090.43)},
+	{name = "BlocoEditor_2", size = Vector3.new(4.0, 0.5, 24.0), pos = Vector3.new(-18952.55, 2.93, 8270.15)},
+	{name = "BlocoEditor_3", size = Vector3.new(4.0, 0.5, 23.0), pos = Vector3.new(-18957.22, 4.53, 8271.25)},
+	{name = "BlocoEditor_4", size = Vector3.new(4.0, 0.5, 21.0), pos = Vector3.new(-18961.9, 6.83, 8269.67)},
+	{name = "BlocoEditor_5", size = Vector3.new(4.0, 0.5, 23.0), pos = Vector3.new(-18967.84, 6.83, 8269.94)},
+	{name = "BlocoEditor_6", size = Vector3.new(6.0, 0.5, 33.0), pos = Vector3.new(-18980.83, 18.01, 8269.65)},
+	{name = "BlocoEditor_7", size = Vector3.new(6.0, 0.5, 33.0), pos = Vector3.new(-18995.1, 18.01, 8269.96)},
+	{name = "BlocoEditor_8", size = Vector3.new(6.0, 0.5, 32.0), pos = Vector3.new(-19010.94, 18.01, 8270.07)},
+	{name = "BlocoEditor_9", size = Vector3.new(6.0, 0.5, 35.0), pos = Vector3.new(-19025.8, 18.01, 8270.68)},
+	{name = "BlocoEditor_10", size = Vector3.new(5.0, 0.5, 34.0), pos = Vector3.new(-19034.12, 2.63, 8269.77)},
+	{name = "BlocoEditor_11", size = Vector3.new(5.0, 0.5, 31.0), pos = Vector3.new(-19040.75, 4.73, 8269.24)},
+	{name = "BlocoEditor_12", size = Vector3.new(4.0, 0.5, 31.0), pos = Vector3.new(-19046.31, 7.03, 8269.13)},
+	{name = "BlocoEditor_13", size = Vector3.new(69.0, 0.5, 5.0), pos = Vector3.new(-19082.22, 7.03, 8269.29)},
+	{name = "BlocoEditor_14", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19130.86, 6.83, 8269.93)},
+	{name = "BlocoEditor_15", size = Vector3.new(5.0, 0.5, 18.0), pos = Vector3.new(-19143.58, 2.93, 8276.24)},
+	{name = "BlocoEditor_16", size = Vector3.new(5.0, 0.5, 15.0), pos = Vector3.new(-19148.52, 4.53, 8276.1)},
+	{name = "BlocoEditor_17", size = Vector3.new(5.0, 0.5, 12.0), pos = Vector3.new(-19154.29, 6.83, 8276.53)},
+	{name = "BlocoEditor_18", size = Vector3.new(6.0, 0.5, 12.0), pos = Vector3.new(-19157.65, 6.83, 8281.92)},
+	{name = "BlocoEditor_19", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19164.93, 6.83, 8294.8)},
+	{name = "BlocoEditor_20", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19171.96, 6.83, 8304.49)},
+	{name = "BlocoEditor_21", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19172.11, 6.83, 8316.22)},
+	{name = "BlocoEditor_22", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19171.96, 6.83, 8327.45)},
+	{name = "BlocoEditor_23", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19164.14, 6.83, 8333.34)},
+	{name = "BlocoEditor_24", size = Vector3.new(37.0, 0.5, 5.0), pos = Vector3.new(-19139.61, 10.34, 8324.19)},
+	{name = "BlocoEditor_25", size = Vector3.new(37.0, 0.5, 5.0), pos = Vector3.new(-19139.55, 10.33, 8344.49)},
+	{name = "BlocoEditor_26", size = Vector3.new(4.0, 0.5, 20.0), pos = Vector3.new(-19106.6, 9.52, 8334.18)},
+	{name = "BlocoEditor_27", size = Vector3.new(4.0, 0.5, 20.0), pos = Vector3.new(-19088.71, 6.08, 8334.49)},
+	{name = "BlocoEditor_28", size = Vector3.new(4.0, 0.5, 21.0), pos = Vector3.new(-19070.9, 8.44, 8333.74)},
+	{name = "BlocoEditor_29", size = Vector3.new(4.0, 0.5, 21.0), pos = Vector3.new(-19053.0, 9.57, 8333.47)},
+	{name = "BlocoEditor_30", size = Vector3.new(4.0, 0.5, 21.0), pos = Vector3.new(-19036.1, 6.24, 8335.38)},
+	{name = "BlocoEditor_31", size = Vector3.new(4.0, 0.5, 32.0), pos = Vector3.new(-19023.77, 7.03, 8334.38)},
+	{name = "BlocoEditor_32", size = Vector3.new(4.0, 0.5, 33.0), pos = Vector3.new(-19016.07, 7.03, 8334.75)},
+	{name = "BlocoEditor_33", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19010.01, 6.93, 8327.58)},
+	{name = "BlocoEditor_34", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19002.04, 6.93, 8331.57)},
+	{name = "BlocoEditor_35", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18995.2, 6.93, 8335.48)},
+	{name = "BlocoEditor_36", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18988.01, 6.93, 8338.31)},
+	{name = "BlocoEditor_37", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18980.2, 6.93, 8340.01)},
+	{name = "BlocoEditor_38", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18973.56, 6.93, 8344.66)},
+	{name = "BlocoEditor_39", size = Vector3.new(4.0, 0.5, 24.0), pos = Vector3.new(-18968.38, 6.83, 8341.4)},
+	{name = "BlocoEditor_40", size = Vector3.new(4.0, 0.5, 27.0), pos = Vector3.new(-18962.34, 6.83, 8342.55)},
+	{name = "BlocoEditor_41", size = Vector3.new(4.0, 0.5, 23.0), pos = Vector3.new(-18957.65, 4.53, 8340.62)},
+	{name = "BlocoEditor_42", size = Vector3.new(4.0, 0.5, 22.0), pos = Vector3.new(-18953.23, 2.93, 8340.26)},
+	{name = "BlocoEditor_43", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18959.6, 5.57, 8500.54)},
+	{name = "BlocoEditor_44", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18967.2, 9.81, 8500.38)},
+	{name = "BlocoEditor_45", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18974.49, 12.35, 8500.21)},
+	{name = "BlocoEditor_46", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18981.95, 16.6, 8500.04)},
+	{name = "BlocoEditor_47", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-18989.63, 18.79, 8499.74)},
+	{name = "BlocoEditor_48", size = Vector3.new(5.0, 0.5, 10.0), pos = Vector3.new(-18994.57, 22.89, 8500.07)},
+	{name = "BlocoEditor_49", size = Vector3.new(5.0, 0.5, 10.0), pos = Vector3.new(-19004.16, 26.86, 8499.7)},
+	{name = "BlocoEditor_50", size = Vector3.new(6.0, 0.5, 10.0), pos = Vector3.new(-19012.48, 19.26, 8499.44)},
+	{name = "BlocoEditor_51", size = Vector3.new(6.0, 0.5, 10.0), pos = Vector3.new(-19021.98, 24.81, 8499.83)},
+	{name = "BlocoEditor_52", size = Vector3.new(34.0, 0.5, 5.0), pos = Vector3.new(-19048.53, 21.96, 8499.79)},
+	{name = "BlocoEditor_53", size = Vector3.new(3.0, 0.5, 20.0), pos = Vector3.new(-19029.16, 21.67, 8500.23)},
+	{name = "BlocoEditor_54", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19075.1, 23.11, 8505.8)},
+	{name = "BlocoEditor_55", size = Vector3.new(6.0, 0.5, 5.0), pos = Vector3.new(-19079.13, 23.1, 8495.35)},
+	{name = "BlocoEditor_56", size = Vector3.new(6.0, 0.5, 5.0), pos = Vector3.new(-19083.91, 23.13, 8505.44)},
+	{name = "BlocoEditor_57", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19090.63, 23.12, 8495.2)},
+	{name = "BlocoEditor_58", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19145.94, 7.25, 8488.48)},
+	{name = "BlocoEditor_59", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19158.13, 7.25, 8492.0)},
+	{name = "BlocoEditor_60", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19148.19, 7.25, 8497.6)},
+	{name = "BlocoEditor_61", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19152.95, 7.25, 8505.06)},
+	{name = "BlocoEditor_62", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19143.92, 7.25, 8507.21)},
+	{name = "BlocoEditor_63", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19158.11, 7.25, 8512.57)},
+	{name = "BlocoEditor_64", size = Vector3.new(5.0, 0.5, 5.0), pos = Vector3.new(-19149.3, 7.25, 8516.73)},
+	{name = "BlocoEditor_65", size = Vector3.new(19.0, 0.5, 4.0), pos = Vector3.new(-19153.35, 9.5, 8538.59)},
+	{name = "BlocoEditor_66", size = Vector3.new(21.0, 0.5, 4.0), pos = Vector3.new(-19153.57, 19.85, 8557.45)},
+	{name = "BlocoEditor_67", size = Vector3.new(17.0, 0.5, 3.0), pos = Vector3.new(-19153.08, 29.52, 8590.14)},
+	{name = "BlocoEditor_68", size = Vector3.new(16.0, 0.5, 3.0), pos = Vector3.new(-19153.11, 33.09, 8598.09)},
+	{name = "BlocoEditor_69", size = Vector3.new(16.0, 0.5, 3.0), pos = Vector3.new(-19152.97, 35.12, 8607.24)},
+	{name = "BlocoEditor_70", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19153.59, 38.54, 8614.49)},
+	{name = "BlocoEditor_71", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19153.51, 41.9, 8623.79)},
+	{name = "BlocoEditor_72", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19154.08, 44.37, 8633.39)},
+	{name = "BlocoEditor_73", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19153.56, 48.52, 8642.74)},
+	{name = "BlocoEditor_74", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19153.62, 51.75, 8652.04)},
+	{name = "BlocoEditor_75", size = Vector3.new(20.0, 0.5, 3.0), pos = Vector3.new(-19153.95, 26.7, 8580.29)},
+	{name = "BlocoEditor_76", size = Vector3.new(18.0, 0.5, 3.0), pos = Vector3.new(-19153.23, 56.85, 8660.59)},
+	{name = "BlocoEditor_77", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19160.22, 10.6, 8690.96)},
+	{name = "BlocoEditor_78", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19154.25, 10.6, 8696.11)},
+	{name = "BlocoEditor_79", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19162.21, 10.6, 8702.95)},
+	{name = "BlocoEditor_80", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19154.1, 10.6, 8702.98)},
+	{name = "BlocoEditor_81", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19157.14, 10.6, 8713.0)},
+	{name = "BlocoEditor_82", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19161.26, 10.6, 8723.0)},
+	{name = "BlocoEditor_83", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19152.27, 10.6, 8723.08)},
+	{name = "BlocoEditor_84", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19144.23, 10.6, 8720.1)},
+	{name = "BlocoEditor_85", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19141.33, 10.6, 8727.11)},
+	{name = "BlocoEditor_86", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19137.23, 10.6, 8719.98)},
+	{name = "BlocoEditor_87", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19134.29, 10.6, 8727.17)},
+	{name = "BlocoEditor_88", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-19133.14, 10.6, 8713.2)},
+	{name = "BlocoEditor_90", size = Vector3.new(32.0, 0.5, 4.0), pos = Vector3.new(-18858.76, 4.36, 8710.49)},
+	{name = "BlocoEditor_91", size = Vector3.new(32.0, 0.5, 4.0), pos = Vector3.new(-18858.56, 4.38, 8734.64)},
+	{name = "BlocoEditor_91", size = Vector3.new(3.0, 0.5, 2.5), pos = Vector3.new(-18882.85, 3.2, 8729.39)},
+	{name = "BlocoEditor_92", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18876.72, 3.1, 8727.5)},
+	{name = "BlocoEditor_93", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18883.94, 3.26, 8723.34)},
+	{name = "BlocoEditor_94", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18879.96, 3.28, 8719.67)},
+	{name = "BlocoEditor_95", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18877.86, 3.21, 8716.51)},
+	{name = "BlocoEditor_96", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18889.41, 3.0, 8724.6)},
+	{name = "BlocoEditor_97", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18888.32, 3.08, 8729.77)},
+	{name = "BlocoEditor_98", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18883.0, 3.3, 8716.56)},
+	{name = "BlocoEditor_99", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18886.91, 3.24, 8717.5)},
+	{name = "BlocoEditor_100", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18892.49, 3.2, 8716.71)},
+	{name = "BlocoEditor_101", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18892.83, 3.15, 8721.91)},
+	{name = "BlocoEditor_102", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18896.51, 3.21, 8719.73)},
+	{name = "BlocoEditor_103", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18899.24, 3.02, 8716.68)},
+	{name = "BlocoEditor_104", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18898.86, 3.18, 8722.64)},
+	{name = "BlocoEditor_105", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18895.58, 3.26, 8727.78)},
+	{name = "BlocoEditor_106", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18903.24, 3.02, 8715.75)},
+	{name = "BlocoEditor_107", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18907.86, 3.1, 8718.0)},
+	{name = "BlocoEditor_108", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18903.47, 3.18, 8729.9)},
+	{name = "BlocoEditor_109", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18908.46, 3.18, 8724.67)},
+	{name = "BlocoEditor_110", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18914.96, 3.17, 8723.07)},
+	{name = "BlocoEditor_111", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18913.15, 3.3, 8717.05)},
+	{name = "BlocoEditor_112", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18911.79, 3.26, 8727.71)},
+	{name = "BlocoEditor_113", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18918.5, 3.06, 8717.04)},
+	{name = "BlocoEditor_114", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18919.97, 3.18, 8725.28)},
+	{name = "BlocoEditor_115", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18925.97, 3.18, 8716.01)},
+	{name = "BlocoEditor_116", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18927.93, 3.15, 8726.96)},
+	{name = "BlocoEditor_117", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18924.64, 3.16, 8720.88)},
+	{name = "BlocoEditor_118", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18932.68, 3.18, 8718.26)},
+	{name = "BlocoEditor_119", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18933.03, 3.22, 8726.95)},
+	{name = "BlocoEditor_120", size = Vector3.new(3.0, 0.5, 3.0), pos = Vector3.new(-18936.68, 3.18, 8720.9)},
+	{name = "BlocoEditor_121", size = Vector3.new(21.0, 0.5, 5.0), pos = Vector3.new(-18953.22, 56.5, 8722.66)},
+	{name = "BlocoEditor_122", size = Vector3.new(4.0, 0.5, 20.0), pos = Vector3.new(-18938.54, 55.75, 8722.79)},
+	{name = "BlocoEditor_123", size = Vector3.new(16.0, 0.5, 5.0), pos = Vector3.new(-18973.06, 56.5, 8722.65)},
+	{name = "BlocoEditor_124", size = Vector3.new(24.0, 0.5, 5.0), pos = Vector3.new(-18995.83, 56.5, 8722.39)},
+	{name = "BlocoEditor_125", size = Vector3.new(21.0, 0.5, 4.0), pos = Vector3.new(-19018.3, 56.5, 8722.81)},
+	{name = "BlocoEditor_126", size = Vector3.new(4.0, 0.5, 22.0), pos = Vector3.new(-19027.45, 56.5, 8722.5)},
+	{name = "BlocoEditor_127", size = Vector3.new(4.0, 0.5, 25.0), pos = Vector3.new(-19040.86, 55.5, 8722.64)},
+	{name = "BlocoEditor_128", size = Vector3.new(4.0, 0.5, 20.0), pos = Vector3.new(-19069.04, 39.5, 8721.42)},
+	{name = "BlocoEditor_129", size = Vector3.new(4.0, 0.5, 22.0), pos = Vector3.new(-19088.95, 22.5, 8723.71)},
+	{name = "BlocoEditor_130", size = Vector3.new(4.0, 0.5, 22.0), pos = Vector3.new(-19108.9, 11.5, 8722.02)},
+	{name = "BlocoEditor_131", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19151.73, 5.35, 8682.87)},
+	{name = "BlocoEditor_132", size = Vector3.new(5.0, 0.5, 20.0), pos = Vector3.new(-19164.67, 5.35, 8671.93)},
+	{name = "BlocoEditor_133", size = Vector3.new(5.0, 0.5, 21.0), pos = Vector3.new(-19164.62, 14.15, 8670.44)},
+	{name = "BlocoEditor_134", size = Vector3.new(5.0, 0.5, 20.0), pos = Vector3.new(-19164.71, 22.95, 8671.63)},
+	{name = "BlocoEditor_135", size = Vector3.new(19.0, 0.5, 6.0), pos = Vector3.new(-19152.67, 31.75, 8682.76)},
+	{name = "BlocoEditor_136", size = Vector3.new(19.0, 0.5, 6.0), pos = Vector3.new(-19153.05, 40.55, 8682.18)},
+	{name = "BlocoEditor_137", size = Vector3.new(19.0, 0.5, 6.0), pos = Vector3.new(-19152.33, 49.35, 8683.31)},
+	{name = "BlocoEditor_138", size = Vector3.new(19.0, 0.5, 6.0), pos = Vector3.new(-19152.53, 58.15, 8683.42)},
+
+	-- BLOCOS 139-195 (NOVOS - CONTINUAÇÃO)
+	{name = "BlocoEditor_139", size = Vector3.new(24.0, 0.5, 5.0), pos = Vector3.new(-19084.56, 2.93, 8106.72)},
+	{name = "BlocoEditor_140", size = Vector3.new(24.0, 0.5, 5.0), pos = Vector3.new(-19083.47, 6.83, 8097.52)},
+	{name = "BlocoEditor_141", size = Vector3.new(25.5, 0.5, 5.0), pos = Vector3.new(-19083.54, 4.53, 8102.06)},
+	{name = "BlocoEditor_142", size = Vector3.new(24.0, 0.5, 5.0), pos = Vector3.new(-19084.16, 6.83, 8091.36)},
+	{name = "BlocoEditor_143", size = Vector3.new(21.0, 0.5, 5.0), pos = Vector3.new(-19083.81, 7.05, 8083.27)},
+	{name = "BlocoEditor_144", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19083.59, 16.16, 8083.27)},
+	{name = "BlocoEditor_145", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19083.76, 24.03, 8083.27)},
+	{name = "BlocoEditor_146", size = Vector3.new(18.0, 0.5, 5.0), pos = Vector3.new(-19083.84, 33.66, 8083.27)},
+	{name = "BlocoEditor_147", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19083.26, 42.64, 8083.27)},
+	{name = "BlocoEditor_148", size = Vector3.new(20.0, 0.5, 5.0), pos = Vector3.new(-19083.03, 51.23, 8083.27)},
+	{name = "BlocoEditor_149", size = Vector3.new(20.0, 0.5, 6.0), pos = Vector3.new(-19083.33, 60.09, 8082.27)},
+	{name = "BlocoEditor_150", size = Vector3.new(19.0, 0.5, 6.0), pos = Vector3.new(-19083.79, 68.98, 8083.27)},
+	{name = "BlocoEditor_151", size = Vector3.new(17.0, 0.5, 6.0), pos = Vector3.new(-19083.5, 77.7, 8084.27)},
+	{name = "BlocoEditor_152", size = Vector3.new(20.0, 0.5, 6.0), pos = Vector3.new(-19083.25, 86.61, 8083.27)},
+	{name = "BlocoEditor_153", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19089.1, 86.94, 8044.75)},
+	{name = "BlocoEditor_154", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19083.62, 86.94, 8055.71)},
+	{name = "BlocoEditor_155", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19077.7, 86.94, 8044.46)},
+	{name = "BlocoEditor_156", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19083.79, 86.94, 8032.41)},
+	{name = "BlocoEditor_157", size = Vector3.new(6.0, 0.5, 6.0), pos = Vector3.new(-19080.77, 86.94, 8023.33)},
+	{name = "BlocoEditor_158", size = Vector3.new(31.0, 0.5, 6.0), pos = Vector3.new(-19081.88, 29.08, 7969.92)},
+	{name = "BlocoEditor_159", size = Vector3.new(32.0, 0.5, 6.0), pos = Vector3.new(-19081.97, 29.08, 7956.0)},
+	{name = "BlocoEditor_160", size = Vector3.new(32.0, 0.5, 6.0), pos = Vector3.new(-19081.81, 29.08, 7939.92)},
+	{name = "BlocoEditor_161", size = Vector3.new(23.0, 0.5, 6.0), pos = Vector3.new(-19082.2, 25.8, 7928.83)},
+	{name = "BlocoEditor_162", size = Vector3.new(21.0, 0.5, 5.0), pos = Vector3.new(-19083.27, 25.8, 7915.35)},
+	{name = "BlocoEditor_163", size = Vector3.new(23.0, 0.5, 5.0), pos = Vector3.new(-19081.86, 25.8, 7905.0)},
+	{name = "BlocoEditor_164", size = Vector3.new(10.0, 0.5, 11.0), pos = Vector3.new(-19281.71, 2.06, 8110.56)},
+	{name = "BlocoEditor_165", size = Vector3.new(11.0, 0.5, 8.0), pos = Vector3.new(-19281.75, 6.47, 8103.45)},
+	{name = "BlocoEditor_166", size = Vector3.new(11.0, 0.5, 10.0), pos = Vector3.new(-19281.67, 10.85, 8095.66)},
+	{name = "BlocoEditor_167", size = Vector3.new(11.0, 0.5, 10.0), pos = Vector3.new(-19282.67, 16.85, 8084.74)},
+	{name = "BlocoEditor_168", size = Vector3.new(15.0, 0.5, 4.0), pos = Vector3.new(-19282.16, 21.93, 8080.23)},
+	{name = "BlocoEditor_169", size = Vector3.new(5.0, 0.5, 68.0), pos = Vector3.new(-19271.89, 25.22, 8041.22)},
+	{name = "BlocoEditor_170", size = Vector3.new(5.0, 0.5, 72.0), pos = Vector3.new(-19291.58, 24.77, 8043.3)},
+	{name = "BlocoEditor_171", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19281.27, 7.21, 8000.4)},
+	{name = "BlocoEditor_172", size = Vector3.new(20.0, 0.5, 5.0), pos = Vector3.new(-19280.72, 16.06, 8000.4)},
+	{name = "BlocoEditor_173", size = Vector3.new(20.0, 0.5, 5.0), pos = Vector3.new(-19280.61, 24.73, 8000.4)},
+	{name = "BlocoEditor_174", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19281.15, 33.51, 8000.4)},
+	{name = "BlocoEditor_175", size = Vector3.new(18.0, 0.5, 5.0), pos = Vector3.new(-19281.4, 42.45, 8000.4)},
+	{name = "BlocoEditor_176", size = Vector3.new(19.0, 0.5, 5.0), pos = Vector3.new(-19281.2, 51.32, 8000.4)},
+	{name = "BlocoEditor_177", size = Vector3.new(18.0, 0.5, 5.0), pos = Vector3.new(-19280.3, 59.94, 8000.4)},
+	{name = "BlocoEditor_178", size = Vector3.new(21.0, 0.5, 5.0), pos = Vector3.new(-19281.04, 68.71, 7999.4)},
+	{name = "BlocoEditor_179", size = Vector3.new(18.0, 0.5, 5.0), pos = Vector3.new(-19280.71, 77.64, 8000.4)},
+	{name = "BlocoEditor_180", size = Vector3.new(20.0, 0.5, 5.0), pos = Vector3.new(-19280.36, 86.46, 7999.4)},
+	{name = "BlocoEditor_181", size = Vector3.new(7.0, 0.5, 70.0), pos = Vector3.new(-19280.86, 87.0, 7945.87)},
+	{name = "BlocoEditor_182", size = Vector3.new(8.5, 0.5, 8.5), pos = Vector3.new(-19298.21, 86.97, 7902.22)},
+	{name = "BlocoEditor_183", size = Vector3.new(8.0, 0.5, 8.0), pos = Vector3.new(-19314.32, 86.97, 7902.03)},
+	{name = "BlocoEditor_184", size = Vector3.new(8.0, 0.5, 8.0), pos = Vector3.new(-19327.73, 86.97, 7901.92)},
+	{name = "BlocoEditor_185", size = Vector3.new(8.0, 0.5, 8.0), pos = Vector3.new(-19340.04, 86.97, 7901.83)},
+	{name = "BlocoEditor_186", size = Vector3.new(7.0, 0.5, 71.0), pos = Vector3.new(-19357.14, 87.0, 7944.87)},
+	{name = "BlocoEditor_187", size = Vector3.new(30.0, 0.5, 6.0), pos = Vector3.new(-19357.5, 86.99, 8007.18)},
+	{name = "BlocoEditor_188", size = Vector3.new(32.0, 0.5, 6.0), pos = Vector3.new(-19356.4, 76.19, 8019.35)},
+	{name = "BlocoEditor_189", size = Vector3.new(31.0, 0.5, 6.0), pos = Vector3.new(-19356.67, 64.31, 8031.91)},
+	{name = "BlocoEditor_190", size = Vector3.new(32.0, 0.5, 6.0), pos = Vector3.new(-19356.72, 53.5, 8042.97)},
+	{name = "BlocoEditor_191", size = Vector3.new(33.0, 0.5, 6.0), pos = Vector3.new(-19356.86, 40.76, 8053.88)},
+	{name = "BlocoEditor_192", size = Vector3.new(30.0, 0.5, 6.0), pos = Vector3.new(-19356.34, 29.95, 8063.87)},
+	{name = "BlocoEditor_193", size = Vector3.new(31.0, 0.5, 6.0), pos = Vector3.new(-19356.07, 22.27, 8072.51)},
+	{name = "BlocoEditor_194", size = Vector3.new(30.0, 0.5, 6.0), pos = Vector3.new(-19356.34, 13.85, 8081.86)},
+	{name = "BlocoEditor_195", size = Vector3.new(28.0, 0.5, 6.0), pos = Vector3.new(-19355.71, 8.81, 8091.96)},
+}
+
+-- ==================== CRIAR BLOCOS ====================
+local blocksFolder = Instance.new("Folder")
+blocksFolder.Name = "GhostBlocks"
+blocksFolder.Parent = workspace
+
+local createdBlocks = {}
+
+for _, data in ipairs(blocksData) do
+	local part = Instance.new("Part")
+	part.Name = data.name
+	part.Size = data.size
+	part.Position = data.pos
+	part.Anchored = true
+	part.CanCollide = true
+	part.CanTouch = true
+	part.CanQuery = true
+	part.Color = BLOCK_COLOR
+	part.Material = Enum.Material.Neon
+	part.Transparency = BLOCK_TRANSPARENCY
+	part.CastShadow = false
+	part.Parent = blocksFolder
+
+	local light = Instance.new("PointLight")
+	light.Color = BLOCK_COLOR
+	light.Brightness = 0.5
+	light.Range = 8
+	light.Parent = part
+
+	table.insert(createdBlocks, part)
+end
+
+-- ==================== COLISÃO: DESATIVADA POR BAIXO, ATIVADA EM CIMA ====================
+RunService.Heartbeat:Connect(function()
+	local char = player.Character
+	if not char then return end
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local playerY = hrp.Position.Y
+
+	for _, block in ipairs(createdBlocks) do
+		local blockY = block.Position.Y
+
+		if playerY < blockY then
+			block.CanCollide = false
+		else
+			block.CanCollide = true
+		end
+	end
+end)
+
+-- ==================== TOGGLE ON/OFF ====================
+local blocksVisible = true
+
+local function toggleBlocks()
+	blocksVisible = not blocksVisible
+
+	for _, block in ipairs(createdBlocks) do
+		block.Transparency = blocksVisible and BLOCK_TRANSPARENCY or 1
+		for _, child in ipairs(block:GetChildren()) do
+			if child:IsA("PointLight") then
+				child.Enabled = blocksVisible
+			end
+		end
+	end
+
+	statusLabel.Text = blocksVisible and "BLOCOS: ON" or "BLOCOS: OFF"
+	statusLabel.TextColor3 = blocksVisible and BLOCK_COLOR or Color3.fromRGB(100, 100, 100)
+
+	buttonFrame:TweenSize(
+		blocksVisible and UDim2.new(0, 60, 0, 60) or UDim2.new(0, 55, 0, 55),
+		Enum.EasingDirection.Out,
+		Enum.EasingStyle.Quad,
+		0.2,
+		true
+	)
+end
+
+toggleButton.MouseButton1Click:Connect(toggleBlocks)
+
+toggleButton.MouseEnter:Connect(function()
+	stroke.Thickness = 3
+end)
+
+toggleButton.MouseLeave:Connect(function()
+	stroke.Thickness = 2
+end)
+
+print("[Ghost Blocks] Script carregado! Total de blocos: " .. #createdBlocks)
+print("[Ghost Blocks] Botao ARRASTAVEL ativado!")
+print("[Ghost Blocks] Cor: Roxo transparente | Colisao: desativada por baixo")
